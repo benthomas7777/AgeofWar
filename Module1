@@ -1,0 +1,353 @@
+Module Module1
+    Const MapSize As Integer = 50
+    Const DisplaySize As Integer = 9
+    Dim Loc(2) As Integer
+    Dim SelectedRow As Integer = 5
+    Dim SelectedColumn As Integer = 5
+    Sub Main()
+        Dim TerrianMap(MapSize, MapSize) As String
+        Dim Map(MapSize, MapSize) As String
+        Dim PlayerOne(9, 6) As String
+        Dim GameOver As Boolean = True
+        TerrianGenerator(TerrianMap)
+        StartLocation(TerrianMap)
+        InitialiseGame(Map, TerrianMap)
+        AddUnit(PlayerOne, "V", Loc(0), Loc(1), Map)
+        Console.WriteLine("Display Terrian Map? (y)")
+        If Console.ReadLine() = "y" Then
+            TMap(TerrianMap)
+        End If
+        Display(Map, TerrianMap, PlayerOne(0, 1), PlayerOne(0, 2))
+        While GameOver <> False
+            Console.WriteLine("Would you like to select a Tile? (y)")
+            If Console.ReadLine = "y" Then
+                GridSelector()
+                Console.Clear()
+                Display(Map, TerrianMap, PlayerOne(0, 1), PlayerOne(0, 2))
+            ElseIf Console.ReadLine = "q" Then
+                End
+            Else
+                Console.WriteLine("No Other Functions avaliable. q to quit (q)")
+            End If
+        End While
+        Console.ReadLine()
+    End Sub
+    Sub TerrianGenerator(ByRef TerrianMap(,) As String)
+        For x = 1 To 5
+            For Row = 1 To MapSize
+                For Column = 1 To MapSize
+                    If TerrianMap(Row - 1, Column) = "" And TerrianMap(Row, Column - 1) = "" Then
+                        TerrianMap(Row, Column) = RandomTerrian()
+                    ElseIf TerrianMap(Row - 1, Column) = "P" And TerrianMap(Row, Column - 1) = "P" And RandomNumberPercentage() < 20 Then
+                        TerrianMap(Row, Column) = "P"
+                    ElseIf TerrianMap(Row - 1, Column) = "P" Or TerrianMap(Row, Column - 1) = "P" And RandomNumberPercentage() < 20 Then
+                        TerrianMap(Row, Column) = "P"
+                    ElseIf TerrianMap(Row - 1, Column) = "D" And TerrianMap(Row, Column - 1) = "D" And RandomNumberPercentage() < 80 Then
+                        TerrianMap(Row, Column) = "D"
+                    ElseIf TerrianMap(Row - 1, Column) = "D" Or TerrianMap(Row, Column - 1) = "D" And RandomNumberPercentage() < 65 Then
+                        TerrianMap(Row, Column) = "D"
+                    Else
+                        TerrianMap(Row, Column) = RandomTerrian()
+                    End If
+                Next
+            Next
+        Next
+        Randomize()
+        For x = 1 To CInt(Int((225 * Rnd()) + 50))
+            TerrianMap(RandomLocation(), RandomLocation()) = "M"
+        Next
+        Randomize()
+        For x = 1 To CInt(Int((300 * Rnd()) + 150))
+            TerrianMap(RandomLocation(), RandomLocation()) = "H"
+        Next
+        Randomize()
+        For x = 1 To CInt(Int((20 * Rnd()) + 1))
+            Dim RowLoc As Integer = RandomLocation()
+            Dim ColumnLoc As Integer = RandomLocation()
+            Dim Expand As Integer = 50
+            Do Until Expand > 99
+                If ColumnLoc >= 50 Or RowLoc >= 50 Then
+                    Expand = 100
+                Else
+                    If RandomNumberPercentage() <> 100 Then
+                        ColumnLoc = ColumnLoc + 1
+                    Else
+                        RowLoc = RowLoc + 1
+                    End If
+                    TerrianMap(RowLoc, ColumnLoc) = "R"
+                    Expand = RandomNumberPercentage()
+                End If
+            Loop
+        Next
+        Randomize()
+        For x = 1 To CInt(Int((3 * Rnd()) + 1))
+            Dim RowLoc As Integer = RandomLocation()
+            Dim ColumnLoc As Integer = RandomLocation()
+        Next
+    End Sub
+    Function RandomTerrian() As String
+        Randomize()
+        Dim value As Integer = CInt(Int((100 * Rnd()) + 1))
+        If value >= 1 And value < 55 Then
+            Return "P"
+        ElseIf value >= 55 And value <= 100 Then
+            Return "D"
+        Else : Return "F"
+        End If
+    End Function
+    Function RandomNumberPercentage() As Integer
+        Randomize()
+        Dim value As Integer = CInt(Int((100 * Rnd()) + 1))
+        Return value
+    End Function
+    Function RandomLocation() As Integer
+        Randomize()
+        Dim value As Integer = CInt(Int((50 * Rnd()) + 1))
+        Return value
+    End Function
+    Sub TMap(ByVal TerrianMap(,) As String)
+        For Row = 1 To MapSize
+            For Column = 1 To MapSize
+                If TerrianMap(Row, Column) = "R" Then
+                    Console.ForegroundColor = ConsoleColor.Blue
+                ElseIf TerrianMap(Row, Column) = "P" Then
+                    Console.ForegroundColor = ConsoleColor.Green
+                ElseIf TerrianMap(Row, Column) = "D" Then
+                    Console.ForegroundColor = ConsoleColor.Yellow
+                ElseIf TerrianMap(Row, Column) = "M" Then
+                    Console.ForegroundColor = ConsoleColor.DarkGray
+                ElseIf TerrianMap(Row, Column) = "M" Then
+                    Console.ForegroundColor = ConsoleColor.Gray
+                End If
+                Console.Write(TerrianMap(Row, Column))
+                Console.ResetColor()
+            Next
+        Next
+        Console.ReadLine()
+        Console.Clear()
+    End Sub
+    Sub Display(ByRef Map(,) As String, ByVal TerrianMap(,) As String, ByRef FocusRow As Integer, ByRef FocusColumn As Integer)
+        Dim Row As Integer
+        Dim Column As Integer
+        Dim StartRangeR As Integer
+        Dim FinishRangeR As Integer
+        Dim StartRangeC As Integer
+        Dim FinishRangeC As Integer
+        Dim TempHolder As Integer
+
+        StartRangeR = (FocusRow - 5) + 50
+        If StartRangeR > 50 Then
+            StartRangeR = 5
+        Else
+            TempHolder = 50 - StartRangeR
+            StartRangeR = 5 - TempHolder
+        End If
+        FinishRangeR = 50 - FocusRow + 4
+        If FinishRangeR > 0 Then
+            FinishRangeR = 4
+        Else
+            TempHolder = 4 - Math.Abs(FinishRangeR)
+            FinishRangeR = TempHolder
+        End If
+
+        StartRangeC = (FocusColumn - 5) + 50
+        If StartRangeC > 50 Then
+            StartRangeC = 5
+        Else
+            TempHolder = 50 - StartRangeC
+            StartRangeC = 5 - TempHolder
+        End If
+        FinishRangeC = 50 - FocusColumn + 4
+        If FinishRangeC > 0 Then
+            FinishRangeC = 4
+        Else
+            TempHolder = 4 - Math.Abs(FinishRangeC)
+            FinishRangeC = TempHolder
+        End If
+
+        For Row = FocusRow - StartRangeR + 1 To FocusRow + FinishRangeR
+            DisplayHighlightRow(Row - FocusRow + StartRangeR)
+            Console.ForegroundColor = ConsoleColor.White
+            Console.Write(Row - FocusRow + StartRangeR & "   ")
+            For Column = FocusColumn - StartRangeC + 1 To FocusColumn + FinishRangeC
+                DisplayHighlightColumn(Row - FocusRow + StartRangeR, Column - FocusColumn + StartRangeC)
+                If TerrianMap(Row, Column) = "R" Then
+                    Console.ForegroundColor = ConsoleColor.Blue
+                ElseIf TerrianMap(Row, Column) = "P" Then
+                    Console.ForegroundColor = ConsoleColor.Green
+                ElseIf TerrianMap(Row, Column) = "D" Then
+                    Console.ForegroundColor = ConsoleColor.Yellow
+                ElseIf TerrianMap(Row, Column) = "M" Then
+                    Console.ForegroundColor = ConsoleColor.DarkGray
+                ElseIf TerrianMap(Row, Column) = "M" Then
+                    Console.ForegroundColor = ConsoleColor.Gray
+                End If
+                Console.Write(TerrianMap(Row, Column))
+                Console.ResetColor()
+                Console.ForegroundColor = ConsoleColor.Magenta
+                Console.Write(Map(Row, Column))
+                Console.ResetColor()
+            Next
+            If SelectedColumn = 9 Then
+                Console.ForegroundColor = ConsoleColor.Red
+            Else
+                Console.ForegroundColor = ConsoleColor.White
+            End If
+            Console.WriteLine("|")
+            Console.ResetColor()
+        Next
+        If SelectedColumn = 9 Then
+            Console.ForegroundColor = ConsoleColor.Red
+        Else
+            Console.ForegroundColor = ConsoleColor.White
+        End If
+        Console.WriteLine("    ____________________________")
+        Console.ForegroundColor = ConsoleColor.White
+        Console.WriteLine()
+        Console.WriteLine("     1  2  3  4  5  6  7  8  9")
+        Console.WriteLine()
+        Console.WriteLine()
+        Console.ResetColor()
+    End Sub
+    Sub InitialiseGame(ByRef Map(,) As String, ByVal TerrianMap(,) As String)
+        For Row = 1 To MapSize
+            For Column = 1 To MapSize
+                Map(Row, Column) = " "
+            Next
+        Next
+    End Sub
+    Sub AddUnit(ByRef PlayerData(,) As String, ByVal Unit As String, ByVal Row As Integer, ByVal Column As Integer, ByRef Map(,) As String)
+        Dim Movement As Integer
+        Dim AttackMin As Integer
+        Dim AttackMax As Integer
+        Dim Slot As Integer
+        If Unit = "V" Then
+            Movement = 5
+            AttackMax = 20
+            AttackMin = 1
+        End If
+        For index = 0 To PlayerData.GetUpperBound(0)
+            If PlayerData(index, 0) = "" Then
+                Slot = index
+                Exit For
+            End If
+        Next
+        PlayerData(Slot, 0) = Unit
+        PlayerData(Slot, 1) = Row
+        PlayerData(Slot, 2) = Column
+        PlayerData(Slot, 3) = Movement
+        PlayerData(Slot, 4) = AttackMin
+        PlayerData(Slot, 5) = AttackMax
+        Map(Row, Column) = Unit
+    End Sub
+    Sub StartLocation(ByVal TerrianMap(,) As String)
+        Loc(0) = RandomLocation()
+        Loc(1) = RandomLocation()
+        While TerrianMap(Loc(0), Loc(1)) = "R" Or TerrianMap(Loc(0), Loc(1)) = "S" Or TerrianMap(Loc(0), Loc(1)) = "M"
+            Loc(0) = RandomLocation()
+            Loc(1) = RandomLocation()
+        End While
+    End Sub
+    Sub GridSelector()
+        Console.WriteLine("Which title would you like to select? (RowColumn)")
+        SelectedRow = Console.ReadLine()
+        SelectedColumn = Console.ReadLine()
+    End Sub
+    Sub DisplayHighlightRow(ByVal Row As Integer)
+        If Row = SelectedRow Or Row = SelectedRow + 1 Then
+            Select Case SelectedColumn
+                Case 1
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("    ____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("________________________ ")
+                    Console.WriteLine()
+                Case 2
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    ___")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("_____________________")
+                    Console.WriteLine()
+                Case 3
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    ______")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("__________________")
+                    Console.WriteLine()
+                Case 4
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    _________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("_______________")
+                    Console.WriteLine()
+                Case 5
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    ____________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("____________")
+                    Console.WriteLine()
+                Case 6
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    _______________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("_________")
+                    Console.WriteLine()
+                Case 7
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    __________________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("______")
+                    Console.WriteLine()
+                Case 8
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    _____________________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("___")
+                    Console.WriteLine()
+                Case 9
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    ________________________")
+                    Console.ForegroundColor = ConsoleColor.Red
+                    Console.Write("____")
+                    Console.WriteLine()
+                Case Else
+                    Console.ForegroundColor = ConsoleColor.White
+                    Console.Write("    ____________________________")
+                    Console.WriteLine()
+            End Select
+        Else
+            Console.ForegroundColor = ConsoleColor.White
+            Console.WriteLine("    ____________________________")
+        End If
+        Console.ResetColor()
+    End Sub
+    Sub DisplayHighlightColumn(ByVal Row As Integer, ByVal Column As Integer)
+        If Row = SelectedRow And Column = SelectedColumn Or Column = SelectedColumn + 1 And Row = SelectedRow Then
+            Console.ForegroundColor = ConsoleColor.Red
+        Else
+            Console.ForegroundColor = ConsoleColor.White
+        End If
+        Console.Write("|")
+        Console.ResetColor()
+    End Sub
+    Sub Move()
+        'Allows Player Movement
+    End Sub
+    Sub GUI()
+        'GUI Screen
+    End Sub
+End Module
