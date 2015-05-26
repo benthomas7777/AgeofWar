@@ -29,6 +29,13 @@ Module Module1
             Else
                 Console.WriteLine("No Other Functions avaliable. q to quit (q)")
             End If
+            Console.WriteLine("Do you want to move current Unit to this title? (y)")
+            If Console.ReadLine.ToUpper = "Y" Then
+                Move(PlayerOne, Map)
+                Console.ReadLine()
+                Console.Clear()
+                Display(Map, TerrianMap, PlayerOne(0, 1), PlayerOne(0, 2))
+            End If
         End While
         Console.ReadLine()
     End Sub
@@ -166,11 +173,11 @@ Module Module1
         End If
 
         For Row = FocusRow - StartRangeR + 1 To FocusRow + FinishRangeR
-            DisplayHighlightRow(Row - FocusRow + StartRangeR)
+            DisplayHighlightRow(Row)
             Console.ForegroundColor = ConsoleColor.White
-            Console.Write(Row - FocusRow + StartRangeR & "   ")
+            Console.Write(Row & "   ")
             For Column = FocusColumn - StartRangeC + 1 To FocusColumn + FinishRangeC
-                DisplayHighlightColumn(Row - FocusRow + StartRangeR, Column - FocusColumn + StartRangeC)
+                DisplayHighlightColumn(Row, Column)
                 If TerrianMap(Row, Column) = "R" Then
                     Console.ForegroundColor = ConsoleColor.Blue
                 ElseIf TerrianMap(Row, Column) = "P" Then
@@ -201,10 +208,16 @@ Module Module1
         Else
             Console.ForegroundColor = ConsoleColor.White
         End If
-        Console.WriteLine("    ____________________________")
+        Console.WriteLine("     ____________________________")
         Console.ForegroundColor = ConsoleColor.White
-        Console.WriteLine()
-        Console.WriteLine("     1  2  3  4  5  6  7  8  9")
+        Console.Write("      ")
+        For Column = FocusColumn - StartRangeC + 1 To FocusColumn + FinishRangeC
+            If Column < 10 Then
+                Console.Write(Column & "  ")
+            Else
+                Console.Write(Column & " ")
+            End If
+        Next
         Console.WriteLine()
         Console.WriteLine()
         Console.ResetColor()
@@ -258,13 +271,13 @@ Module Module1
             Select Case SelectedColumn
                 Case 1
                     Console.ForegroundColor = ConsoleColor.Red
-                    Console.Write("    ____")
+                    Console.Write("     ____")
                     Console.ForegroundColor = ConsoleColor.White
                     Console.Write("________________________ ")
                     Console.WriteLine()
                 Case 2
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    ___")
+                    Console.Write("     ___")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -272,7 +285,7 @@ Module Module1
                     Console.WriteLine()
                 Case 3
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    ______")
+                    Console.Write("     ______")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -280,7 +293,7 @@ Module Module1
                     Console.WriteLine()
                 Case 4
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    _________")
+                    Console.Write("     _________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -288,7 +301,7 @@ Module Module1
                     Console.WriteLine()
                 Case 5
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    ____________")
+                    Console.Write("     ____________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -296,7 +309,7 @@ Module Module1
                     Console.WriteLine()
                 Case 6
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    _______________")
+                    Console.Write("     _______________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -304,7 +317,7 @@ Module Module1
                     Console.WriteLine()
                 Case 7
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    __________________")
+                    Console.Write("     __________________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -312,7 +325,7 @@ Module Module1
                     Console.WriteLine()
                 Case 8
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    _____________________")
+                    Console.Write("     _____________________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.ForegroundColor = ConsoleColor.White
@@ -320,18 +333,18 @@ Module Module1
                     Console.WriteLine()
                 Case 9
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    ________________________")
+                    Console.Write("     ________________________")
                     Console.ForegroundColor = ConsoleColor.Red
                     Console.Write("____")
                     Console.WriteLine()
                 Case Else
                     Console.ForegroundColor = ConsoleColor.White
-                    Console.Write("    ____________________________")
+                    Console.Write("     ____________________________")
                     Console.WriteLine()
             End Select
         Else
             Console.ForegroundColor = ConsoleColor.White
-            Console.WriteLine("    ____________________________")
+            Console.WriteLine("     ____________________________")
         End If
         Console.ResetColor()
     End Sub
@@ -344,9 +357,35 @@ Module Module1
         Console.Write("|")
         Console.ResetColor()
     End Sub
-    Sub Move()
-        'Allows Player Movement
-    End Sub
+    Function Move(ByVal PlayerOne(,) As String, ByRef Map(,) As String) As Boolean
+        Dim Loc As Integer
+        For Check = PlayerOne.GetLowerBound(0) To PlayerOne.GetUpperBound(0)
+            If PlayerOne(Check, 1) = SelectedRow Then
+                Loc = Check
+                Exit For
+            End If
+        Next
+        Dim Movement As Integer = PlayerOne(Loc, 3)
+        Dim Distance As Integer = (Math.Abs(SelectedRow - PlayerOne(Loc, 1)) + Math.Abs(SelectedColumn - PlayerOne(Loc, 2)))
+        If PlayerOne(Loc, 1) = SelectedRow And PlayerOne(Loc, 2) = SelectedColumn Then
+            Console.WriteLine("You can't move the unit to the same place!")
+            Return False
+        ElseIf Distance > Movement Then
+            Console.WriteLine("This unit can't move more than " & Movement & " tiles! You tried to move: " & Distance)
+            Return False
+        Else
+            Console.WriteLine("Are you Sure? (y)")
+            If Console.ReadLine.ToUpper = "Y" Then
+                Map(PlayerOne(Loc, 1), PlayerOne(Loc, 2)) = ""
+                Map(SelectedRow, SelectedColumn) = PlayerOne(Loc, 0)
+                PlayerOne(Loc, 1) = SelectedRow
+                PlayerOne(Loc, 2) = SelectedColumn
+                Return True
+            Else
+                Return False
+            End If
+        End If
+    End Function
     Sub GUI()
         'GUI Screen
     End Sub
